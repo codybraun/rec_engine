@@ -5,13 +5,12 @@ from django.contrib.auth.models import User
 from django.db import models
 
 class User(models.Model):
-  id = models.BigIntegerField(unique=True, primary_key=True)
+  pass
 
 class Product(models.Model):
-  id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
-  
+  pass
+ 
 class Activity(models.Model):
-  id =  models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
   user = models.ForeignKey(User)
   product = models.ForeignKey(Product)
   score = models.FloatField()

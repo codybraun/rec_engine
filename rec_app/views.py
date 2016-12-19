@@ -5,12 +5,20 @@ import requests
 import random
 from rec_app.models import *
 from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import csrf_exempt
+from django.forms.models import model_to_dict
+#from svd import SingularValueDecomposition
+import svd
 
+#svd = svd.SingularValueDecomposition() 
+print svd.views 
+
+@csrf_exempt
 def user(request):
   if request.method=="POST":
     user = User.objects.create()
     user.save()
-    return HttpResponse(user)
+    return HttpResponse(str(model_to_dict(user)))
   else:
     return HttpResponse("Invalid")
 
