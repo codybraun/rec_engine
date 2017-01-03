@@ -19,5 +19,6 @@ class Rec(models.Model):
   product = models.ForeignKey(Product)
   user = models.ForeignKey(User)
   score = models.FloatField()
-  unique_together = (('product_id','user_id'),)
+  class Meta:
+    unique_together = ('product','user')
 

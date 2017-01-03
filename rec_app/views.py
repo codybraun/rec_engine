@@ -8,11 +8,7 @@ from rec_app.models import *
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
-#from svd import SingularValueDecomposition
-import svd
-
-#svd = svd.SingularValueDecomposition() 
-print svd.views 
+import svd 
 
 @csrf_exempt
 def user(request):
@@ -44,7 +40,12 @@ def activity(request, user_id, product_id):
 
 def rec(request, user_id):
   user = User.objects.get(id=user_id) 
+  svd.apps.svd_instance.commit_user_recs(user_id)
   game_recs =  Rec.objects.filter(user_id=user_id).exclude(product_id__in = Activity.objects.filter(user_id=user.id).values_list("product_id", flat=True)).distinct().order_by("score").select_related('product')[:20] 
-  print {"recs":[model_to_dict(game) for game in game_recs]}
   return JsonResponse({"recs":[model_to_dict(game) for game in game_recs]})
+
+def docs(request):
+  template = loader.get_template("docs.html")
+  context = {}
+  return HttpResponse(template.render(context, request))
     
