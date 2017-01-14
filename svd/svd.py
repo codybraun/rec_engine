@@ -80,7 +80,7 @@ class SingularValueDecomposition():
     for i in range(len(self.users)):
        for j in range(len(self.products)):
          propensity = np.vdot(self.v[i], self.u[j].T)
-         c.execute("INSERT INTO rec_app_rec (user_id, product_id, score) VALUES ('{0}', '{1}', '{2}')".format(self.users[i], self.products[j], propensity))
+      	 c.execute("INSERT INTO rec_app_rec (user_id, product_id, score) VALUES ('{0}', '{1}', '{2}') ON CONFLICT (user_id, product_id) DO UPDATE SET score='{2}'".format(self.users[i], self.products[j], propensity))
          rec_matrix[i][j]= propensity
          conn.commit()
     self.rec_matrix = rec_matrix

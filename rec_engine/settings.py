@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rec_app.apps.RecAppConfig',
-    'svd.apps.SvdConfig'
+    'svd.apps.SvdConfig',
+    'user_app.apps.UserAppConfig',
+    'rest_framework.authtoken',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +81,7 @@ WSGI_APPLICATION = 'rec_engine.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'recs_engine',
+        'NAME': 'rec_engine',
         'USER': 'jcbraun',
         'PASSWORD': '3312crystal',
         'HOST': 'localhost',
@@ -128,3 +131,13 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
 )
+
+REST_FRAMEWORK = {
+  'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    )
+
+}

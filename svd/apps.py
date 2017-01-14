@@ -14,7 +14,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 svd_instance = svd.SingularValueDecomposition()
 svd_instance.build_affinity_matrix()
 svd_instance.build_full_svd()
-#svd.commit_recs()
+svd_instance.commit_recs()
 
 class SvdConfig(AppConfig):
     name = 'svd'

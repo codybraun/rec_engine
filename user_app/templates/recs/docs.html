@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<ul><p>Authentication</p>
+<li>Post a username and password to "/token" to receive a token which can be used to validate all future requests.</li>
+<li>The token can then be sent as an "Authorization" header with "Token " prepended. (Like "Authentication: Token YOUR_TOKEN_HERE")  </li>
+</ul>
+<ul><p>Users</p>
+<li>Post to "/users" to create a new user, which is returned as a JSON object with included id.</li>
+</ul>
+<ul><p>Products</p>
+<li>Post to "/products" to create a new product, which is returned as a JSON object with included id.</li>
+</ul>
+<ul><p>Activity</p>
+<li>Post to user/:user_id/product/:product_id/activity to register a new user-product activity, representing a user's affinity for a product.</li>
+<li>A "score" parameter reflects the strength or weakness of that relationship (which may be represented by a star rating, hours used, etc.)</li>
+</ul>
+<ul><p>Recommendations</p>
+<li>Get /user/:user_id/recs will return a list of the most recommended products</li>
+</ul>
+{% endblock %}

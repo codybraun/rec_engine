@@ -1,0 +1,10 @@
+{% extends "recs/base.html" %}
+{% block content %}
+{% if game %}
+  <h1 class="game-name">{{game.name }}</h1>
+  <img class="game-view" src="http://media.steampowered.com/steamcommunity/public/images/apps/{{game.app_id}}/{{game.img}}.jpg">
+  <a href="http://store.steampowered.com/app/{{game.app_id}}">Buy on Steam</a>
+{% else %}
+    <p>Game not available.</p>
+{% endif %}
+{% endblock %}

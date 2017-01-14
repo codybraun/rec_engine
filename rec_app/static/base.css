@@ -2,6 +2,10 @@ html{
   min-height:100%;
 }
 
+.centered-wrapper{
+  width:100%;
+  text-align:center;
+}
 button.rating{
   color:white;
   background-color:black;
@@ -14,7 +18,7 @@ div.stars{
 
 div.menu-item{
   vertical-align: middle;
-  color:white;
+  color:#95a5a6;
   display:table-cell;
   height:100%;
   text-align:center;
@@ -22,7 +26,7 @@ div.menu-item{
 }
 
 .menu{
-  background-color:#2980b9;
+  background-color:#95a5a6;
   height:50px;
   width:100%;
   margin:0px;
@@ -96,7 +100,7 @@ li.menu{
 }
 
 body{
-  background-color:#2ecc71;
+  background-color:#2c3e50;
   position:absolute;
   min-height:100%;
 }
@@ -110,6 +114,7 @@ body{
   width:80%;
   padding:0px;
   margin-top:20px;
+  overflow:hidden;
 }
 
 input:after {
@@ -120,4 +125,25 @@ input:after {
 
 .form-wrapper{
   text-align:center;
+}
+
+.content p{
+  font-family: 'Roboto Condensed', sans-serif;
+  font-size: 40px;
+  text-align:center;
+  color:#2c3e50;
+  vertical-align:center;
+}
+.content{
+  padding:110px;
+}
+.content li{
+  font-family: 'Roboto Condensed', sans-serif;
+  font-style: italic;
+  font-size: 30px;
+  color:#2c3e50;
+}
+
+input{
+  font-size:25px;
 }

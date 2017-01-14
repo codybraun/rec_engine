@@ -1,0 +1,24 @@
+{% extends "recs/base.html" %}
+{% block content %}
+{% if game_recs %}
+    {% for rec in game_recs %}
+        <a class="game-rec" href="/recs/games/{{rec.app_id}}/"><div class="game-rec"><div class="game-rec-wrapper"><span class="game-rec-title">{{rec.name }}</span>
+          <div class ="game-preview">
+		<img class="game-preview" src="http://media.steampowered.com/steamcommunity/public/images/apps/{{rec.app_id}}/{{rec.img}}.jpg">
+		<div class="stars">
+		<form class="stars" method="post" action="/svd/users/{{user_id}}/games/{{rec.app_id}}/rating">
+		{% csrf_token %}
+			<button name="rating" class="rating" value="1"><i class="fa fa-star" aria-hidden="true"></i></button>
+			<button name="rating" class="rating" value="2"><i class="fa fa-star" aria-hidden="true"></i></button>
+			<button name="rating" class="rating" value="3"><i class="fa fa-star" aria-hidden="true"></i></button>
+			<button name="rating" class="rating" value="4"><i class="fa fa-star" aria-hidden="true"></i></button>
+			<button name="rating" class="rating" value="5"><i class="fa fa-star" aria-hidden="true"></i></button>
+		</form>
+		</div>
+	</div>
+</div></div></a>
+    {% endfor %}
+{% else %}
+    <p>No games are available.</p>
+{% endif %}
+{% endblock %}
