@@ -3,7 +3,8 @@ import os
 import numpy as np
 
 pw = os.getenv("PSQLPW")
-conn = psycopg2.connect("host=localhost dbname=game_recs user=jcbraun password="+pw)
+psql_host = os.getenv("PSQLHOST")
+conn = psycopg2.connect("host=" + psql_host +" dbname=game_recs user=jcbraun password="+pw)
 
 c = conn.cursor()
 c.execute('SELECT user_id FROM recs_user')

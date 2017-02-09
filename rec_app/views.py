@@ -54,7 +54,7 @@ def activity(request, user_id, product_id):
     return HttpResponse(activity)
 
 @authentication_classes((TokenAuthentication,))
-@api_view(['POST'])
+@api_view(['GET'])
 @csrf_exempt
 def rec(request, user_id):
   user = User.objects.get(id=user_id) 

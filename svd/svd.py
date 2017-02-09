@@ -10,9 +10,10 @@ import os
 import numpy as np
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 
-pw = os.getenv("SQLPW")
+pw = os.getenv("PSQLPW")
+psql_host = os.getenv("PSQLHOST")
 #pw = os.environ.get('SQLPW', False)
-conn = psycopg2.connect("host=localhost dbname=recs_engine user=jcbraun password="+pw)
+conn = psycopg2.connect("host=" + psql_host + " dbname=rec_engine user=jcbraun password="+pw)
 c = conn.cursor()
 
 class SingularValueDecomposition():
