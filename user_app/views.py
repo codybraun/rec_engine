@@ -14,6 +14,7 @@ def logout_user(request):
   return HttpResponseRedirect("/login/")
 
 def login_user(request):
+  context={'form':LoginForm}
   if request.method=="POST":
     username = str(request.POST['username'])
     password = str(request.POST['password'])
@@ -22,26 +23,32 @@ def login_user(request):
       login(request, user)
       return HttpResponseRedirect("/")
     else:
-      return HttpResponseRedirect("/login/")
+      template = loader.get_template("recs/login.html")
+      context['error']="Username and password are not correct."
+      return HttpResponse(template.render(context, request))
   else:
     if request.user.is_authenticated:  
       return HttpResponseRedirect("/")
     else:
       template = loader.get_template("recs/login.html")
-      context={'form':LoginForm}
       return HttpResponse(template.render(context, request))
   
 def new_user(request):
+  template = loader.get_template("recs/new_user.html")
   if request.method=="POST":
-    data = request.POST
-    user = User(username=data.get("username",""), email=data.get("email",""))
-    user.set_password(data["password"])
-    user.save()
-    return HttpResponse()
+    form = UserForm(request.POST)
+    if form.is_valid():
+        print form.cleaned_data
+        user = User(username=form.cleaned_data.get("username",""), email=form.cleaned_data.get("email",""))
+        user.set_password(form.cleaned_data["password"])
+        user.save()
+        return HttpResponseRedirect("/login/")
+    else:
+        print "ERRORS " + str(form.errors)
+        return HttpResponse(template.render({'form':UserForm, "errors":form.errors}, request))
   else:
-    template = loader.get_template("recs/new_user.html")
-    context={'form':UserForm}
-    return HttpResponse(template.render(context, request))
+      context={'form':UserForm()}
+      return HttpResponse(template.render(context, request))
 
 def profile(request):
   context={}
