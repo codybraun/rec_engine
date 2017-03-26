@@ -8,6 +8,7 @@ from rec_app.models import *
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
+from django.core import serializers
 import svd 
 from rest_framework_swagger.views import get_swagger_view
 from rest_framework.decorators import api_view
@@ -16,7 +17,10 @@ from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth.models import User as Owner
 schema_view = get_swagger_view(title=' API')
 
-@api_view(['POST'])
+#TODO update SVD as actvitiy POSTed?
+#Update user recs as activity posted, not when recs requested
+
+@api_view(['POST','GET'])
 @authentication_classes((TokenAuthentication,))
 @csrf_exempt
 def user(request):
@@ -27,8 +31,14 @@ def user(request):
     user = User.objects.create(owner=Owner.objects.get(id=request.user.id))
     user.save()
     return JsonResponse(model_to_dict(user))
+  elif request.method=="GET":
+    users = User.objects.filter(owner=request.user.id)
+    return_value = []
+    for user in users:
+      return_value.append({"id":user.id})
+    return JsonResponse(return_value, safe=False)
 
-@api_view(['POST'])
+@api_view(['POST','GET'])
 @authentication_classes((TokenAuthentication,))
 @csrf_exempt
 def product(request):
@@ -39,26 +49,40 @@ def product(request):
     product = Product.objects.create(owner=Owner.objects.get(id=request.user.id))
     product.save()
     return JsonResponse(model_to_dict(product))
+  elif request.method=="GET":
+    products = Product.objects.filter(owner=request.user.id)
+    return_value = []
+    for product in products:
+      return_value.append({"id":product.id})
+    return JsonResponse(return_value, safe=False)
 
-@api_view(['POST'])
+
+@api_view(['POST','GET'])
 @authentication_classes((TokenAuthentication,))
 @csrf_exempt
-def activity(request, user_id, product_id):
-  """
-    POST to this endpoint to create an activity, reflecting a user's interaction with a product.  
-  """
+def new_activity(request, user_id, product_id):
   if request.method=="POST":
     score = request.POST["score"]
     activity = Activity.objects.create(user_id=user_id, product_id=product_id, score=score, owner=Owner.objects.get(id=request.user.id))
     activity.save()
     return HttpResponse(activity)
 
+def get_activity(request):
+  if request.method=="GET":
+    activities = Activity.objects.filter(owner=request.user.id)
+    return_value = []
+    for activity in activities:
+      return_value.append({"id":activity.id,"user_id":activity.user_id, "product_id":activity.product_id, "score":activity.score})
+    return JsonResponse(return_value, safe=False)
+
+
 @authentication_classes((TokenAuthentication,))
 @api_view(['GET'])
 @csrf_exempt
 def rec(request, user_id):
   user = User.objects.get(id=user_id) 
-  svd.apps.svd_instance.commit_user_recs(user_id)
+  owner_id = user.owner_id
+  #svd.apps.svd_instance.commit_user_recs(user_id, owner_id)
   base =  Rec.objects.filter(user_id=user_id, owner=request.user.id)
   repeats = request.GET.get("repeats")
   count = request.GET.get("count",20)

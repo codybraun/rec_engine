@@ -11,11 +11,11 @@ import svd
 import numpy as np
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 
-#svd_instance = svd.SingularValueDecomposition()
+svd_instance = svd.SingularValueDecomposition()
 print "BUILDING AFFINITY"
-#svd_instance.build_affinity_matrix()
+svd_instance.build_affinity_matrix()
 print "BUILDING SVD"
-#svd_instance.build_full_svd()
+svd_instance.build_full_svd()
 #print "COMMITING"
 #svd_instance.commit_recs()
 

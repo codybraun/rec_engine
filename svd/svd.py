@@ -9,6 +9,9 @@ import psycopg2
 import os 
 import numpy as np
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.db import connection
+connection._rollback()
+connection.close()
 
 pw = os.getenv("PSQLPW")
 psql_host = os.getenv("PSQLHOST")
@@ -25,6 +28,8 @@ class SingularValueDecomposition():
 
   def build_full_svd(self):
     self.u,self.s,self.v=np.linalg.svd(self.affinity_matrix, full_matrices=False) 
+    #self.u,self.s,self.v=np.linalg.svd(self.affinity_matrix, full_matrices=True) 
+    print self.u, self.s, self.v
 
   def rank_one_svd_update(self, user_id, product_id):
     #m = U'a
@@ -72,6 +77,7 @@ class SingularValueDecomposition():
     self.affinity_matrix = matrix
     self.users = users
     self.products = products
+    print self.affinity_matrix, users, products
 
   def update_affinity_matrix(self, user_id,product_id,score):
     pass
@@ -86,11 +92,15 @@ class SingularValueDecomposition():
          conn.commit()
     self.rec_matrix = rec_matrix
 
-  def commit_user_recs(self, user_id):
+  def commit_user_recs(self, user_id, owner_id):
+    connection._rollback()
+    connection.close()
     i = self.users.index(int(user_id))
     for j in range(len(self.products)):
-      propensity = np.vdot(self.v[i], self.u[j].T)
-      c.execute("INSERT INTO rec_app_rec (user_id, product_id, score) VALUES ('{0}', '{1}', '{2}') ON CONFLICT (user_id, product_id) DO UPDATE SET score='{2}'".format(self.users[i], self.products[j], propensity))
+      connection._rollback()
+      connection.close()
+      propensity = np.vdot(self.v[:,i], self.u[j].T)
+      c.execute("INSERT INTO rec_app_rec (user_id, owner_id, product_id, score) VALUES ('{0}', '{1}', '{2}', '{3}') ON CONFLICT (user_id, product_id) DO UPDATE SET score='{2}'".format(user_id, owner_id, self.products[j], propensity))
       conn.commit()
 
   def update_user_game(request, game_id, user_id):
