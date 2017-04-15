@@ -29,12 +29,12 @@ class SingularValueDecomposition():
   def build_full_svd(self):
     self.u,self.s,self.v=np.linalg.svd(self.affinity_matrix, full_matrices=False) 
     #self.u,self.s,self.v=np.linalg.svd(self.affinity_matrix, full_matrices=True) 
-    print self.u, self.s, self.v
+    #print self.u, self.s, self.v
 
   def rank_one_svd_update(self, user_id, product_id):
     #m = U'a
     m = np.dot(urls.u.transpose(), a)
-    print "M SHAPE " + str(m.shape)
+    #print "M SHAPE " + str(m.shape)
     #pVec = a - Um
     p_vec = np.subtract(a, np.dot(urls.u, m))
     #p = sqrt(p'p)
@@ -43,20 +43,20 @@ class SingularValueDecomposition():
     P = np.divide(p_vec, p)
     #n = V'b
     n = np.dot(urls.v.transpose(), b)
-    print "n shape " + str(n.shape)
+    #print "n shape " + str(n.shape)
     #qVec = b - Vn
     q_vec = np.subtract(b, np.dot(urls.v, n))
     #q = sqrt(p'p)
     q = math.sqrt(np.dot(q_vec.transpose(), q_vec))
     #Q = qVec/q
     Q = np.divide(q_vec, q)
-    print np.append(m, [p]).shape, np.append(n, [q]).shape
+    #print np.append(m, [p]).shape, np.append(n, [q]).shape
     rhs = np.outer(np.append(m, [p]), np.append(n, [q]))
     x = np.asarray([row for row in self.matrix])
     y =  np.asarray([0] * (len(self.matrix[0]) +1))
-    print (x.shape, y.shape)
+    #print (x.shape, y.shape)
     expanded_matrix = np.asarray(np.concatenate((([(row + [0]) for row in self.matrix]), np.asarray([[0] * (len(self.matrix[0])+1)])), axis=0))
-    print ("MATRIX SIZES " + str(expanded_matrix.shape) + " " + str(rhs.shape))
+    #print ("MATRIX SIZES " + str(expanded_matrix.shape) + " " + str(rhs.shape))
     rhs = np.add(expanded_matrix, rhs);
     u,s,v=np.linalg.svd(expanded_matrix, full_matrices=False) 
     return "junk"
@@ -77,7 +77,7 @@ class SingularValueDecomposition():
     self.affinity_matrix = matrix
     self.users = users
     self.products = products
-    print self.affinity_matrix, users, products
+    #print self.affinity_matrix, users, products
 
   def update_affinity_matrix(self, user_id,product_id,score):
     pass
