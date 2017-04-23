@@ -10,15 +10,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 from django.core import serializers
 import svd 
-from rest_framework_swagger.views import get_swagger_view
 from rest_framework.decorators import api_view
 from rest_framework.decorators import authentication_classes
 from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth.models import User as Owner
-schema_view = get_swagger_view(title=' API')
-
-#TODO update SVD as actvitiy POSTed?
-#Update user recs as activity posted, not when recs requested
 
 @api_view(['POST','GET'])
 @authentication_classes((TokenAuthentication,))
@@ -56,25 +51,26 @@ def product(request):
       return_value.append({"id":product.id})
     return JsonResponse(return_value, safe=False)
 
-
 @api_view(['POST','GET'])
 @authentication_classes((TokenAuthentication,))
 @csrf_exempt
-def new_activity(request, user_id, product_id):
+def activity(request, user_id, product_id):
   if request.method=="POST":
     score = request.POST["score"]
     activity = Activity.objects.create(user_id=user_id, product_id=product_id, score=score, owner=Owner.objects.get(id=request.user.id))
     activity.save()
     return HttpResponse(activity)
+  elif request.method=="GET":
+    activity = Activity.objects.filter(owner=request.user.id, product_id=request.user_id, user_id=request.user_id)
+    return JsonResponse(activity, safe=False)
 
-def get_activity(request):
+def all_activity(request):
   if request.method=="GET":
     activities = Activity.objects.filter(owner=request.user.id)
     return_value = []
     for activity in activities:
       return_value.append({"id":activity.id,"user_id":activity.user_id, "product_id":activity.product_id, "score":activity.score})
     return JsonResponse(return_value, safe=False)
-
 
 @authentication_classes((TokenAuthentication,))
 @api_view(['GET'])

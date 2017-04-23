@@ -81,7 +81,7 @@ WSGI_APPLICATION = 'rec_engine.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'rec_engine',
+        'NAME': 'recs_engine',
         'USER': 'jcbraun',
         'PASSWORD': '3312crystal',
         'HOST': psql_host,

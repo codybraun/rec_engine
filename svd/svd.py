@@ -10,26 +10,44 @@ import os
 import numpy as np
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.db import connection
+import traceback
+import threading 
+threads = [] 
 connection._rollback()
 connection.close()
 
 pw = os.getenv("PSQLPW")
 psql_host = os.getenv("PSQLHOST")
 #pw = os.environ.get('SQLPW', False)
-conn = psycopg2.connect("host=" + psql_host + " dbname=rec_engine user=jcbraun password="+pw)
+conn = psycopg2.connect("host=" + psql_host + " dbname=recs_engine user=jcbraun password="+pw)
 c = conn.cursor()
 
 class SingularValueDecomposition():
 
   def __init__(self):
-    self.build_affinity_matrix()
-    self.build_full_svd()
+    self.affinity_matrices = {}
+    self.svd_dict = {}
+    c.execute('SELECT id FROM rec_app_user')
+    for owner in c.fetchall(): 
+      self.build_affinity_matrix_for_owner(owner[0])
+      self.build_full_svd_for_owner(owner[0])
     self.matrix = None
+    t = threading.Thread(target=self.background_commit)
+    threads.append(t)
+    t.start()
 
-  def build_full_svd(self):
-    self.u,self.s,self.v=np.linalg.svd(self.affinity_matrix, full_matrices=False) 
-    #self.u,self.s,self.v=np.linalg.svd(self.affinity_matrix, full_matrices=True) 
-    #print self.u, self.s, self.v
+  def build_full_svd_for_owner(self, owner_id):
+    try: 
+      self.update_owner_svd(owner_id, np.linalg.svd(self.affinity_matrices[owner_id], full_matrices=False))
+    except Exception as e:
+      print e
+      traceback.print_exc()
+ 
+  def update_owner_svd(self, owner_id, usv):
+    self.svd_dict[owner_id] = {}
+    self.svd_dict[owner_id]["u"] = usv[0]
+    self.svd_dict[owner_id]["s"] = usv[1]
+    self.svd_dict[owner_id]["v"] = usv[2]
 
   def rank_one_svd_update(self, user_id, product_id):
     #m = U'a
@@ -61,8 +79,8 @@ class SingularValueDecomposition():
     u,s,v=np.linalg.svd(expanded_matrix, full_matrices=False) 
     return "junk"
   
-  def build_affinity_matrix(self):
-    c.execute('SELECT id FROM rec_app_user')
+  def build_affinity_matrix_for_owner(self, owner_id):
+    c.execute('SELECT id FROM rec_app_user WHERE owner_id = ' + str(owner_id))
     users = []
     for row in c.fetchall():
       users.append(row[0])
@@ -70,26 +88,33 @@ class SingularValueDecomposition():
     products = []
     for row in c.fetchall():
       products.append(row[0])
-    c.execute('SELECT product_id, user_id, score FROM rec_app_activity')
+    c.execute('SELECT product_id, user_id, score FROM rec_app_activity WHERE owner_id = ' + str(owner_id))
     matrix = [[0] * len(users) for product in products]
     for row in c.fetchall():
       matrix[products.index(row[0])][users.index(row[1])] = row[2]
-    self.affinity_matrix = matrix
-    self.users = users
-    self.products = products
-    #print self.affinity_matrix, users, products
+    self.affinity_matrices[owner_id] = matrix
 
   def update_affinity_matrix(self, user_id,product_id,score):
     pass
- 
-  def commit_recs(self):
-    rec_matrix = [[0] * len(self.products) for user in self.users]
-    for i in range(len(self.users)):
-       for j in range(len(self.products)):
-         propensity = np.vdot(self.v[i], self.u[j].T)
-      	 c.execute("INSERT INTO rec_app_rec (user_id, product_id, score) VALUES ('{0}', '{1}', '{2}') ON CONFLICT (user_id, product_id) DO UPDATE SET score='{2}'".format(self.users[i], self.products[j], propensity))
-         rec_matrix[i][j]= propensity
-         conn.commit()
+
+  def background_commit(self):
+    while True:
+      c.execute('SELECT id FROM rec_app_user')
+      for owner in c.fetchall(): 
+        self.commit_recs_for_owner(owner[0])       
+
+  def commit_recs_for_owner(self, owner_id):
+    c.execute('SELECT id FROM rec_app_user WHERE owner_id = ' + str(owner_id))
+    users = c.fetchall()
+    c.execute('SELECT id FROM rec_app_product WHERE owner_id = ' + str(owner_id))
+    products = c.fetchall()
+    rec_matrix = [[0] * len(products) for user in users]
+    for i in range(len(users)):
+      for j in range(len(products)):
+        propensity = np.vdot(self.svd_dict[owner_id]["v"][i], self.svd_dict[owner_id]["u"][j].T)
+      	c.execute("INSERT INTO rec_app_rec (user_id, product_id, score, owner_id) VALUES ('{0}', '{1}', '{2}', '{3}') ON CONFLICT (user_id, product_id) DO UPDATE SET score='{2}'".format(users[i][0], products[j][0], propensity, str(owner_id)))
+        rec_matrix[i][j]= propensity
+        conn.commit()
     self.rec_matrix = rec_matrix
 
   def commit_user_recs(self, user_id, owner_id):
@@ -102,62 +127,3 @@ class SingularValueDecomposition():
       propensity = np.vdot(self.v[:,i], self.u[j].T)
       c.execute("INSERT INTO rec_app_rec (user_id, owner_id, product_id, score) VALUES ('{0}', '{1}', '{2}', '{3}') ON CONFLICT (user_id, product_id) DO UPDATE SET score='{2}'".format(user_id, owner_id, self.products[j], propensity))
       conn.commit()
-
-  def update_user_game(request, game_id, user_id):
-    if request.method=="POST" and request.user.is_authenticated:
-      user_vector = np.asarray(generate_user_vector(user_id))
-      game_vector = np.asarray(generate_game_vector(game_id))
-      rank_one_mod(user_vector, game_vector, urls.matrix)
-      return HttpResponse("Done")
-    else:
-      return HttpResponse("Something broke")
-
-  def update_user_stars(request, user_id, game_id):
-    if request.method=="POST" and request.user.is_authenticated:
-      user_id = request.user.id
-      player_id = Player.objects.get(user_id=user_id).id
-      rating = request.POST["rating"]
-      Activity.objects.create(game_id=game_id, player_id=player_id, play_time=get_scaled_rating(game_id, rating)) 
-      user_vector = np.asarray(generate_user_vector(user_id))
-      game_vector = np.asarray(generate_game_vector(game_id))
-      rank_one_mod(user_vector, game_vector, urls.matrix)
-      return HttpResponseRedirect("/recs/recs")
-    else:
-      return HttpResponseRedirect("/recs/recs")
-
-  def get_scaled_rating(game_id, rating):
-    #TODO add percentiles
-    if (rating==3):
-      return Activity.objects.filter(game_id=game_id).aggregate(Avg('play_time'))
-    elif (rating==4):
-      return Activity.objects.filter(game_id=game_id).aggregate(Avg('play_time'))
-    elif (rating==5):
-      return Activity.objects.filter(game_id=game_id).aggregate(Avg('play_time'))
-    else:
-      return 0
-
-  def generate_user_vector(user_id):
-    vector = []
-    player_id = Player.objects.all().filter(user_id=user_id).values()[0]["id"]
-    game_list = Game.objects.all().only("game_id").order_by("game_id")
-    for game in game_list:
-      try:
-        vector.append([Rec.objects.all().filter(game_id=game.game_id, player_id=player_id).values()[0]["score"]])
-      except Exception:
-        vector.append([0])
-    return vector 
- 
-  def generate_game_vector(game_id):
-    vector = []
-    user_list = Player.objects.all().only("id").order_by("id")
-    for user in user_list:
-      try:
-        item =  [Rec.objects.all().filter(player__user_id=user.id, game_id=game_id).values()[0]["score"]]
-        if item:
-          vector.append(item)
-        else:
-          vector.append([0])
-      except Exception:
-        vector.append([0])
-    return vector 
-
