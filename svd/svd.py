@@ -37,6 +37,7 @@ class SingularValueDecomposition():
     t.start()
 
   def build_full_svd_for_owner(self, owner_id):
+    print ("BUILDING SVD FOR " + str(owner_id))
     try: 
       self.update_owner_svd(owner_id, np.linalg.svd(self.affinity_matrices[owner_id], full_matrices=False))
     except Exception as e:
