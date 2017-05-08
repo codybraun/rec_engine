@@ -11,6 +11,7 @@ spec/reports
 test/tmp
 test/version_tmp
 tmp
+rec_app/static
 *.DS_STORE
 build/
 .cache
