@@ -23,6 +23,10 @@ under the License.
 // GENERAL STUFF
 ////////////////////////////////////////////////////////////////////////////////
 
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
 html, body {
   color: $main-text;
   padding: 0;
