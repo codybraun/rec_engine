@@ -102,14 +102,13 @@ body{
 }
 
 .main-wrapper{
-  clear:both;
-  overflow:auto;
-  margin:auto;
   background-color:#ecf0f1;
+  clear:both;
+  margin:50px auto;
   min-height:100%;
-  width:80%;
+  overflow:auto;
   padding:0px;
-  margin-top:20px;
+  width:80%;
 }
 
 input:after {
