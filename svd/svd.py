@@ -18,7 +18,6 @@ connection.close()
 
 pw = os.getenv("PSQLPW")
 psql_host = os.getenv("PSQLHOST")
-#pw = os.environ.get('SQLPW', False)
 conn = psycopg2.connect("host=" + psql_host + " dbname=recs_engine user=jcbraun password="+pw)
 c = conn.cursor()
 
@@ -37,7 +36,6 @@ class SingularValueDecomposition():
     t.start()
 
   def build_full_svd_for_owner(self, owner_id):
-    print ("BUILDING SVD FOR " + str(owner_id))
     try: 
       self.update_owner_svd(owner_id, np.linalg.svd(self.affinity_matrices[owner_id], full_matrices=False))
     except Exception as e:
@@ -51,34 +49,20 @@ class SingularValueDecomposition():
     self.svd_dict[owner_id]["v"] = usv[2]
 
   def rank_one_svd_update(self, user_id, product_id):
-    #m = U'a
     m = np.dot(urls.u.transpose(), a)
-    #print "M SHAPE " + str(m.shape)
-    #pVec = a - Um
     p_vec = np.subtract(a, np.dot(urls.u, m))
-    #p = sqrt(p'p)
     p = math.sqrt(np.dot(p_vec.transpose(), p_vec))
-    #P = pVec/p
     P = np.divide(p_vec, p)
-    #n = V'b
     n = np.dot(urls.v.transpose(), b)
-    #print "n shape " + str(n.shape)
-    #qVec = b - Vn
     q_vec = np.subtract(b, np.dot(urls.v, n))
-    #q = sqrt(p'p)
     q = math.sqrt(np.dot(q_vec.transpose(), q_vec))
-    #Q = qVec/q
     Q = np.divide(q_vec, q)
-    #print np.append(m, [p]).shape, np.append(n, [q]).shape
     rhs = np.outer(np.append(m, [p]), np.append(n, [q]))
     x = np.asarray([row for row in self.matrix])
     y =  np.asarray([0] * (len(self.matrix[0]) +1))
-    #print (x.shape, y.shape)
     expanded_matrix = np.asarray(np.concatenate((([(row + [0]) for row in self.matrix]), np.asarray([[0] * (len(self.matrix[0])+1)])), axis=0))
-    #print ("MATRIX SIZES " + str(expanded_matrix.shape) + " " + str(rhs.shape))
     rhs = np.add(expanded_matrix, rhs);
-    u,s,v=np.linalg.svd(expanded_matrix, full_matrices=False) 
-    return "junk"
+    u,s,v=np.linalg.svd(expanded_matrix, full_matrices=False)
   
   def build_affinity_matrix_for_owner(self, owner_id):
     c.execute('SELECT id FROM rec_app_user WHERE owner_id = ' + str(owner_id))
