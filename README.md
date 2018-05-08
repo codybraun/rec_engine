@@ -4,11 +4,11 @@
 
 ### API
 
-/users/:user/products/:product/activities
+#### /users/:user/products/:product/activities
 GET or POST user activity related to a product
-/users/:user/recs/
+#### /users/:user/recs/
 GET recommendations of products suggested for a user
-/users
+#### /users
 GET or POST existing or new users
-/products
+#### /products
 GET or POST existing or new products
